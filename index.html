@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Orçamento Rápido</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --app-bg:#111113;
+  --surface:#1c1c1f;
+  --surface2:#26262a;
+  --border:#333338;
+  --accent:#7C6FF7;
+  --accent2:#3ecfb2;
+  --text:#f0f0f0;
+  --muted:#888;
+  --danger:#e24b4a;
+  --sbg:#1a2e1a;
+  --sborder:#3B6D11;
+  --stext:#c0dd97;
+}
+html,body{height:100%;}
+body{font-family:'DM Sans',sans-serif;background:#0a0a0c;display:flex;align-items:flex-start;justify-content:center;min-height:100vh;padding:0;}
+@media(min-width:860px){
+  body{align-items:stretch;padding:0;}
+  .page-wrapper{display:flex;width:100%;min-height:100vh;}
+  .sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:32px 24px;display:flex;flex-direction:column;gap:28px;}
+  .sidebar-logo{display:flex;align-items:center;gap:10px;}
+  .sidebar-logo .brand-dot{width:11px;height:11px;}
+  .sidebar-logo .logo-text{font-size:16px;font-weight:700;color:var(--text);}
+  .sidebar-logo .logo-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .sidebar-nav{display:flex;flex-direction:column;gap:4px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border:none;background:none;font-family:'DM Sans',sans-serif;width:100%;text-align:left;transition:all .15s;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(124,111,247,.13);color:var(--accent);}
+  .nav-icon{font-size:15px;width:20px;text-align:center;}
+  .main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--app-bg);}
+  .shell{max-width:none;width:100%;border-radius:0;border:none;border-left:none;min-height:100vh;flex:1;}
+  .tab-bar{display:none;}
+  .screen{padding:32px 36px;}
+  .phone-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+  .device-list{max-height:none;}
+}
+@media(max-width:859px){
+  .sidebar{display:none;}
+  .page-wrapper{display:block;}
+  .main-content{display:block;}
+  .shell{max-width:480px;margin:0 auto;border-radius:20px;border:1px solid var(--border);}
+  body{padding:24px 16px;}
+}
+.shell{background:var(--app-bg);overflow:hidden;min-height:540px;position:relative;height:100%;}
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);}
+.tab{flex:1;padding:15px;text-align:center;font-size:13px;cursor:pointer;color:var(--muted);border:none;background:none;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .2s;letter-spacing:.01em;}
+.tab.active{color:var(--accent);border-bottom:2px solid var(--accent);}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
+.screen{display:none;padding:22px;}
+.screen.active{display:block;}
+
+.search-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(124,111,247,.5);}
+.search-title{font-size:17px;font-weight:600;color:var(--text);}
+.search-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:12px;font-size:14px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s,box-shadow .2s;}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,247,.12);}
+.search-input::placeholder{color:var(--muted);}
+.section-label{font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.phone-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.phone-chip{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .15s;}
+.phone-chip:hover{border-color:var(--accent);background:var(--surface);transform:translateY(-1px);}
+.chip-model{font-size:13px;font-weight:600;color:var(--text);}
+.chip-brand{font-size:11px;color:var(--muted);margin-top:2px;}
+.chip-count{font-size:11px;color:var(--accent2);margin-top:5px;}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;}
+.result-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.result-model{font-size:16px;font-weight:600;color:var(--text);}
+.result-brand{font-size:12px;color:var(--muted);margin-top:2px;}
+.badge{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--muted);font-weight:600;}
+.service-list{padding:6px 0;}
+.service-row{display:flex;justify-content:space-between;align-items:center;padding:11px 18px;border-bottom:1px solid var(--border);}
+.service-row:last-child{border-bottom:none;}
+.service-name{font-size:14px;color:var(--text);}
+.service-price{font-size:14px;font-weight:600;color:var(--accent2);font-family:'JetBrains Mono',monospace;}
+.no-result{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
+
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;gap:16px;}
+.login-icon{width:60px;height:60px;background:var(--surface2);border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);font-size:26px;}
+.login-title{font-size:18px;font-weight:600;color:var(--text);}
+.login-sub{font-size:13px;color:var(--muted);}
+.pin-row{display:flex;gap:12px;}
+.pin-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:all .2s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.1);}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:210px;}
+.num-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:18px;font-weight:500;padding:14px;border-radius:12px;cursor:pointer;transition:all .15s;font-family:'JetBrains Mono',monospace;}
+.num-btn:hover{background:var(--surface);border-color:var(--accent);color:var(--accent);}
+.num-btn:active{transform:scale(.93);}
+.num-btn.del{font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.err-msg{font-size:12px;color:var(--danger);min-height:16px;}
+.pin-hint{font-size:11px;color:var(--muted);}
+
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.admin-title{font-size:17px;font-weight:600;color:var(--text);}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-logout:hover{border-color:var(--danger);color:var(--danger);}
+.add-form,.edit-form{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:18px;}
+.edit-form{border-color:var(--accent);}
+.form-title{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--accent2);}
+.edit-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.field-label{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;}
+.field-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:13px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s;}
+.field-input:focus{border-color:var(--accent);}
+.field-input::placeholder{color:#555;}
+.svcs-builder{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;min-height:40px;}
+.svc-row{display:flex;gap:7px;margin-bottom:7px;align-items:center;}
+.svc-row:last-child{margin-bottom:0;}
+.btn-remove{background:none;border:1px solid var(--border);color:var(--muted);width:29px;height:29px;border-radius:6px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.btn-remove:hover{border-color:var(--danger);color:var(--danger);}
+.btn-add-svc{background:none;border:1px dashed var(--border);color:var(--muted);width:100%;padding:8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-top:2px;}
+.btn-add-svc:hover{border-color:var(--accent);color:var(--accent);}
+.btn-save{background:var(--accent);color:white;border:none;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;margin-top:8px;transition:opacity .15s;}
+.btn-save:hover{opacity:.85;}
+.btn-save.teal{background:var(--accent2);}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.device-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;}
+.device-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.device-info{flex:1;min-width:0;}
+.device-model{font-size:14px;font-weight:600;color:var(--text);}
+.device-brand{font-size:12px;color:var(--muted);}
+.device-svcs{font-size:11px;color:var(--accent2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.device-actions{display:flex;gap:5px;flex-shrink:0;}
+.btn-sm{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 9px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm.del:hover{border-color:var(--danger);color:var(--danger);}
+.empty-state{text-align:center;padding:28px;color:var(--muted);font-size:13px;line-height:1.6;}
+.toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--sbg);border:1px solid var(--sborder);color:var(--stext);padding:9px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99;}
+.toast.show{opacity:1;}
+.toast.err{background:#3a1f1f;border-color:var(--danger);color:#f0a0a0;}
+
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(10,10,12,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999;}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+.loading-text{font-size:13px;color:var(--muted);}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Conectando ao Firebase...</div>
+</div>
+
+<div class="page-wrapper">
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand-dot" style="width:11px;height:11px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(124,111,247,.5);flex-shrink:0;"></div>
+    <div><div class="logo-text">Orçamento Rápido</div><div class="logo-sub">Assistência técnica</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" id="snav-search" onclick="goTab('search')"><span class="nav-icon">🔍</span> Consultar preços</button>
+    <button class="nav-item" id="snav-admin" onclick="goTab('admin')"><span class="nav-icon">⚙️</span> Painel Admin</button>
+  </nav>
+</div>
+<div class="main-content">
+<div class="shell" id="app">
+  <div class="toast" id="toast"></div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="goTab('search')" id="tab-search">Consultar</button>
+    <button class="tab" onclick="goTab('admin')" id="tab-admin">Admin</button>
+  </div>
+
+  <div class="screen active" id="screen-search">
+    <div class="search-header">
+      <div class="brand-dot"></div>
+      <div class="search-title">Orçamento rápido</div>
+    </div>
+    <input class="search-input" id="searchInput" placeholder="Ex: iPhone 13, Samsung A54..." oninput="onSearch()" style="margin-bottom:16px;" />
+    <div id="searchResults"></div>
+  </div>
+
+  <div class="screen" id="screen-login">
+    <div class="login-wrap">
+      <div class="login-icon">🔐</div>
+      <div class="login-title">Painel Admin</div>
+      <div class="login-sub">Entre com sua conta</div>
+      <div style="width:100%;max-width:280px;display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div class="field-label">E-mail</div>
+          <input class="field-input" id="loginEmail" type="email" placeholder="seu@email.com" style="width:100%;" />
+        </div>
+        <div>
+          <div class="field-label">Senha</div>
+          <input class="field-input" id="loginPassword" type="password" placeholder="••••••••" style="width:100%;" />
+        </div>
+        <div class="err-msg" id="pinErr"></div>
+        <button class="btn-save" onclick="doLogin()" id="loginBtn">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-admin">
+    <div class="admin-header">
+      <div class="admin-title">Gerenciar aparelhos</div>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+
+    <div class="edit-form" id="editWrap" style="display:none;">
+      <div class="edit-title-row">
+        <div class="form-title" style="margin:0;color:var(--accent);">Editar aparelho</div>
+        <button class="btn-cancel" onclick="cancelEdit()">Cancelar</button>
+      </div>
+      <div class="form-row">
+        <div><div class="field-label">Marca</div><input class="field-input" id="eBrand" /></div>
+        <div><div class="field-label">Modelo</div><input class="field-input" id="eModel" /></div>
+      </div>
+      <div class="field-label" style="margin-bottom:6px;">Serviços</div>
+      <div class="svcs-builder" id="editBuilder"></div>
+      <button class="btn-add-svc" onclick="addEditRow()">+ Serviço</button>
+      <button class="btn-save teal" onclick="saveEdit()">Salvar alterações</button>
+    </div>
+
+    <div class="add-form" id="addWrap">
+      <div class="form-title">+ Adicionar aparelho</div>
+      <div class="form-row">
+        <div><div class="field-label">Marca</div><input class="field-input" id="fBrand" placeholder="Apple, Samsung..." /></div>
+        <div><div class="field-label">Modelo</div><input class="field-input" id="fModel" placeholder="iPhone 13..." /></div>
+      </div>
+      <div class="field-label" style="margin-bottom:6px;">Serviços</div>
+      <div class="svcs-builder" id="svcsBuilder"></div>
+      <button class="btn-add-svc" onclick="addSvcRow()">+ Serviço</button>
+      <button class="btn-save" onclick="saveDevice()">Salvar aparelho</button>
+    </div>
+
+    <div class="section-label">Cadastrados</div>
+    <div class="device-list" id="deviceList"></div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, collection, getDocs, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// ── SUAS CREDENCIAIS DO FIREBASE ──────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyB_Q88t8pH4Hft3S-RK7vAqKF8kdbHWUIw",
+  authDomain: "orcamento-esc.firebaseapp.com",
+  projectId: "orcamento-esc",
+  storageBucket: "orcamento-esc.firebasestorage.app",
+  messagingSenderId: "1073515680902",
+  appId: "1:1073515680902:web:6e3caa5807da8de87ead07"
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const COLLECTION = 'devices';
+
+// Estado global
+let loggedIn = false, devices = [], editIdx = -1, sc = 0, ec = 0;
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── FIREBASE: carregar todos os aparelhos ────────────────────────────────────
+async function load() {
+  try {
+    const snap = await getDocs(collection(db, COLLECTION));
+    devices = [];
+    snap.forEach(d => devices.push({ id: d.id, ...d.data() }));
+    // ordena por marca+modelo localmente
+    devices.sort((a,b) => (a.brand+a.model).localeCompare(b.brand+b.model));
+  } catch(e) {
+    console.error('Erro ao carregar:', e);
+    devices = [];
+  }
+  document.getElementById('loadingOverlay').style.display = 'none';
+  renderSearch('');
+}
+
+// ── FIREBASE: salvar novo aparelho ───────────────────────────────────────────
+async function saveToFirebase(deviceData) {
+  const ref = await addDoc(collection(db, COLLECTION), deviceData);
+  return ref.id;
+}
+
+// ── FIREBASE: atualizar aparelho ─────────────────────────────────────────────
+async function updateInFirebase(id, deviceData) {
+  await updateDoc(doc(db, COLLECTION, id), deviceData);
+}
+
+// ── FIREBASE: deletar aparelho ───────────────────────────────────────────────
+async function deleteFromFirebase(id) {
+  await deleteDoc(doc(db, COLLECTION, id));
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function goTab(t) {
+  if (t === 'admin') {
+    if (!loggedIn) { showScreen('login'); } else { showScreen('admin'); renderAdmin(); }
+    document.getElementById('tab-admin').classList.add('active');
+    document.getElementById('tab-search').classList.remove('active');
+    if (document.getElementById('snav-admin')) {
+      document.getElementById('snav-admin').classList.add('active');
+      document.getElementById('snav-search').classList.remove('active');
+    }
+  } else {
+    showScreen('search');
+    document.getElementById('tab-search').classList.add('active');
+    document.getElementById('tab-admin').classList.remove('active');
+    if (document.getElementById('snav-search')) {
+      document.getElementById('snav-search').classList.add('active');
+      document.getElementById('snav-admin').classList.remove('active');
+    }
+  }
+}
+window.goTab = goTab;
+
+function showScreen(s) {
+  ['search','login','admin'].forEach(x => document.getElementById('screen-'+x).classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('pinErr');
+  const btn = document.getElementById('loginBtn');
+  if (!email || !password) { errEl.textContent = 'Preencha e-mail e senha!'; return; }
+  btn.textContent = 'Entrando...'; btn.disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    loggedIn = true;
+    errEl.textContent = '';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    showScreen('admin'); renderAdmin();
+    document.getElementById('tab-admin').classList.add('active');
+    document.getElementById('tab-search').classList.remove('active');
+    if (document.getElementById('snav-admin')) {
+      document.getElementById('snav-admin').classList.add('active');
+      document.getElementById('snav-search').classList.remove('active');
+    }
+  } catch(e) {
+    errEl.textContent = 'E-mail ou senha incorretos';
+  }
+  btn.textContent = 'Entrar'; btn.disabled = false;
+}
+window.doLogin = doLogin;
+
+async function logout() { await signOut(auth); loggedIn = false; cancelEdit(); goTab('search'); }
+window.logout = logout;
+
+function onSearch() { renderSearch(document.getElementById('searchInput').value); }
+window.onSearch = onSearch;
+
+function renderSearch(q) {
+  const el = document.getElementById('searchResults');
+  if (!devices.length) { el.innerHTML = '<div class="no-result">Nenhum aparelho cadastrado ainda.</div>'; return; }
+  if (!q.trim()) {
+    let h = '<div class="section-label">Todos os aparelhos</div><div class="phone-grid">';
+    devices.forEach((d, i) => { h += `<div class="phone-chip" onclick="showDevice(${i})"><div class="chip-model">${esc(d.model)}</div><div class="chip-brand">${esc(d.brand)}</div><div class="chip-count">${d.services.length} serviço(s)</div></div>`; });
+    el.innerHTML = h + '</div>'; return;
+  }
+  const m = devices.filter(d => d.model.toLowerCase().includes(q.toLowerCase()) || d.brand.toLowerCase().includes(q.toLowerCase()));
+  if (!m.length) { el.innerHTML = `<div class="no-result">Nenhum resultado para "<strong>${esc(q)}</strong>"</div>`; return; }
+  el.innerHTML = m.map(d => `<div class="result-card"><div class="result-header"><div><div class="result-model">${esc(d.model)}</div><div class="result-brand">${esc(d.brand)}</div></div><div class="badge">${d.services.length} serviço(s)</div></div><div class="service-list">${d.services.map(s => `<div class="service-row"><div class="service-name">${esc(s.name)}</div><div class="service-price">R$ ${parseFloat(s.price).toFixed(2).replace('.',',')}</div></div>`).join('')}</div></div>`).join('');
+}
+
+function showDevice(i) { document.getElementById('searchInput').value = devices[i].model; renderSearch(devices[i].model); }
+window.showDevice = showDevice;
+
+function addSvcRow(n='', p='') {
+  sc++;
+  const id = 's'+sc;
+  const r = document.createElement('div');
+  r.className = 'svc-row'; r.id = id;
+  r.innerHTML = `<input class="field-input svc-name" placeholder="Serviço" value="${esc(n)}" style="flex:2;"/><input class="field-input svc-price" placeholder="R$" value="${esc(p)}" style="flex:1;min-width:0;"/><button class="btn-remove" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  document.getElementById('svcsBuilder').appendChild(r);
+}
+window.addSvcRow = addSvcRow;
+
+function addEditRow(n='', p='') {
+  ec++;
+  const id = 'e'+ec;
+  const r = document.createElement('div');
+  r.className = 'svc-row'; r.id = id;
+  r.innerHTML = `<input class="field-input svc-name" placeholder="Serviço" value="${esc(n)}" style="flex:2;"/><input class="field-input svc-price" placeholder="R$" value="${esc(p)}" style="flex:1;min-width:0;"/><button class="btn-remove" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  document.getElementById('editBuilder').appendChild(r);
+}
+window.addEditRow = addEditRow;
+
+function getSvcs(containerId) {
+  const s = [];
+  document.querySelectorAll('#'+containerId+' .svc-row').forEach(r => {
+    const n = r.querySelector('.svc-name').value.trim(), p = r.querySelector('.svc-price').value.trim();
+    if (n && p) s.push({ name: n, price: p });
+  });
+  return s;
+}
+
+async function saveDevice() {
+  const b = document.getElementById('fBrand').value.trim(), m = document.getElementById('fModel').value.trim();
+  if (!b || !m) { toast('Preencha marca e modelo!', true); return; }
+  const s = getSvcs('svcsBuilder');
+  if (!s.length) { toast('Adicione ao menos 1 serviço!', true); return; }
+  if (devices.find(d => d.model.toLowerCase() === m.toLowerCase() && d.brand.toLowerCase() === b.toLowerCase())) { toast('Já existe esse aparelho!', true); return; }
+  try {
+    const data = { brand: b, model: m, services: s };
+    const newId = await saveToFirebase(data);
+    devices.push({ id: newId, ...data });
+    devices.sort((a,x) => (a.brand+a.model).localeCompare(x.brand+x.model));
+    document.getElementById('fBrand').value = '';
+    document.getElementById('fModel').value = '';
+    document.getElementById('svcsBuilder').innerHTML = '';
+    sc = 0; addSvcRow();
+    toast('Aparelho salvo! ✓');
+    renderAdmin();
+    renderSearch('');
+  } catch(e) { toast('Erro ao salvar!', true); console.error(e); }
+}
+window.saveDevice = saveDevice;
+
+function startEdit(i) {
+  editIdx = i;
+  const d = devices[i];
+  document.getElementById('eBrand').value = d.brand;
+  document.getElementById('eModel').value = d.model;
+  document.getElementById('editBuilder').innerHTML = '';
+  ec = 0;
+  d.services.forEach(s => addEditRow(s.name, s.price));
+  document.getElementById('editWrap').style.display = 'block';
+  document.getElementById('addWrap').style.display = 'none';
+}
+window.startEdit = startEdit;
+
+function cancelEdit() {
+  editIdx = -1;
+  document.getElementById('editWrap').style.display = 'none';
+  document.getElementById('addWrap').style.display = 'block';
+}
+window.cancelEdit = cancelEdit;
+
+async function saveEdit() {
+  const b = document.getElementById('eBrand').value.trim(), m = document.getElementById('eModel').value.trim();
+  if (!b || !m) { toast('Preencha marca e modelo!', true); return; }
+  const s = getSvcs('editBuilder');
+  if (!s.length) { toast('Adicione ao menos 1 serviço!', true); return; }
+  try {
+    const data = { brand: b, model: m, services: s };
+    await updateInFirebase(devices[editIdx].id, data);
+    devices[editIdx] = { id: devices[editIdx].id, ...data };
+    devices.sort((a,x) => (a.brand+a.model).localeCompare(x.brand+x.model));
+    toast('Atualizado! ✓');
+    cancelEdit();
+    renderAdmin();
+    renderSearch('');
+  } catch(e) { toast('Erro ao atualizar!', true); console.error(e); }
+}
+window.saveEdit = saveEdit;
+
+async function deleteDevice(i) {
+  if (!confirm('Remover este aparelho?')) return;
+  try {
+    await deleteFromFirebase(devices[i].id);
+    if (editIdx === i) cancelEdit();
+    devices.splice(i, 1);
+    renderAdmin();
+    renderSearch('');
+  } catch(e) { toast('Erro ao remover!', true); console.error(e); }
+}
+window.deleteDevice = deleteDevice;
+
+function renderAdmin() {
+  const el = document.getElementById('deviceList');
+  if (!devices.length) { el.innerHTML = '<div class="empty-state">Nenhum aparelho ainda.<br><span style="font-size:11px;opacity:.5">Use o formulário acima para adicionar.</span></div>'; return; }
+  el.innerHTML = devices.map((d, i) => `<div class="device-item"><div class="device-info"><div class="device-model">${esc(d.model)}</div><div class="device-brand">${esc(d.brand)}</div><div class="device-svcs">${d.services.map(s => esc(s.name)+': R$'+parseFloat(s.price).toFixed(2).replace('.',',')).join(' · ')}</div></div><div class="device-actions"><button class="btn-sm" onclick="startEdit(${i})">Editar</button><button class="btn-sm del" onclick="deleteDevice(${i})">Remover</button></div></div>`).join('');
+}
+
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast'+(err?' err':'');
+  void t.offsetWidth; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Inicializa
+load();
+addSvcRow();
+</script>
+</body>
+</html>
